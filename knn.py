@@ -15,12 +15,10 @@ class kNN:
       return np.apply_along_axis(self.__set_point_classification, axis=1, arr=test)
 
    def __set_point_classification(self, point):
-      # print("start")
-      labels = self.kdtree.k_nearest(self.k, point[1:])
-      # print(labels)
+      labels = self.kdtree.k_nearest(self.k, point[1:],self.kdtree.get_tree(),[])
+      labels = [x[1][1] for x in labels]
       values, counts = np.unique(labels, return_counts=True)
       label = values[np.argmax(counts)]
-      # print(label)
       return {
          "Point": point,
          "Label": label,
@@ -28,17 +26,10 @@ class kNN:
          "Correct": label == point[0],
       }
 
-   def __set_accuracy(self):
-      return np.sum(self.confusion_matrix.diagonal())/len(self.test_classification)
-      # corrects = 0
-      # for point in self.test_classification:
-      #    if point["Correct"]:
-      #       corrects += 1
-      # return corrects/len(self.test_classification)
 
    def __set_confusion_matrix(self,labels):
       confusion_matrix = np.zeros([len(labels),len(labels)])
-      for point in self.test_classification:
+      for point in self.get_classification():
          if point["Correct"]:
             confusion_matrix[list(labels).index(point["Label"]),list(labels).index(point["Label"])] += 1
          else:
@@ -46,6 +37,9 @@ class kNN:
             confusion_matrix[list(labels).index(point["Label"]),list(labels).index(point["ActualLabel"])] += 1
       return confusion_matrix
    
+   def __set_accuracy(self):
+      return np.sum(self.confusion_matrix.diagonal())/len(self.test_classification)
+      
    # true positives / (true positives + false positives)
    def __set_precision(self):
       return np.diag(self.confusion_matrix)/np.sum(self.confusion_matrix,axis=0)
